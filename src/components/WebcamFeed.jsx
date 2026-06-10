@@ -1,6 +1,7 @@
 import Webcam from 'react-webcam';
 import { Camera, ShieldAlert } from 'lucide-react';
 import FaceDetectionOverlay from './FaceDetectionOverlay';
+import FaceMeshOverlay from './FaceMeshOverlay';
 
 const VIDEO_CONSTRAINTS = {
   width: { ideal: 1280 },
@@ -15,7 +16,9 @@ export default function WebcamFeed({
   onLoadedMetadata,
   error,
   detections,
+  landmarks,
   resolution,
+  landmarkGroups,
 }) {
   if (error) {
     return (
@@ -39,6 +42,12 @@ export default function WebcamFeed({
         onUserMediaError={onUserMediaError}
         onLoadedMetadata={onLoadedMetadata}
         className="h-full w-full object-cover"
+      />
+      <FaceMeshOverlay
+        landmarks={landmarks}
+        videoWidth={resolution.width}
+        videoHeight={resolution.height}
+        landmarkGroups={landmarkGroups}
       />
       <FaceDetectionOverlay
         detections={detections}

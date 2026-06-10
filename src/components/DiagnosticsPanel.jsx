@@ -25,7 +25,8 @@ export default function DiagnosticsPanel({
   browserName,
   isConnected,
   permissionStatus,
-  fps,
+  detectionFps,
+  trackingFps,
   resolution,
 }) {
   return (
@@ -55,9 +56,15 @@ export default function DiagnosticsPanel({
         />
         <StatusCard
           label="Detection FPS"
-          value={`${fps} fps`}
-          status={fps > 0 ? 'success' : 'neutral'}
-          subtitle="Completed MediaPipe inferences per second"
+          value={`${detectionFps} fps`}
+          status={detectionFps > 0 ? 'success' : 'neutral'}
+          subtitle="Face detection inferences per second"
+        />
+        <StatusCard
+          label="Tracking FPS"
+          value={`${trackingFps} fps`}
+          status={trackingFps > 0 ? 'success' : 'neutral'}
+          subtitle="Face mesh inferences per second"
         />
       </div>
 
@@ -102,7 +109,11 @@ export default function DiagnosticsPanel({
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-500">Detection FPS</dt>
-            <dd className="font-mono font-medium text-slate-200">{fps}</dd>
+            <dd className="font-mono font-medium text-slate-200">{detectionFps}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-slate-500">Tracking FPS</dt>
+            <dd className="font-mono font-medium text-slate-200">{trackingFps}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-500">Resolution</dt>

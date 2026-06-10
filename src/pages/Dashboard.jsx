@@ -1,22 +1,32 @@
+import { useState } from 'react';
 import { ScanFace, Circle } from 'lucide-react';
 import WebcamFeed from '../components/WebcamFeed';
 import DiagnosticsPanel, { FaceDetectionMetrics } from '../components/DiagnosticsPanel';
+import FaceMeshMetrics from '../components/FaceMeshMetrics';
+import LandmarkGroupControls from '../components/LandmarkGroupControls';
 import { useCamera } from '../hooks/useCamera';
 import { useFaceDetection } from '../hooks/useFaceDetection';
+import { useFaceMesh } from '../hooks/useFaceMesh';
+import { DEFAULT_LANDMARK_GROUPS } from '../utils/landmarkGroups';
 
-function getSystemStatus(isConnected, detectionHealth, error) {
+function getSystemStatus(isConnected, detectionHealth, meshStatus, error) {
   if (error) return { label: 'Error', color: 'text-red-400', dot: 'bg-red-400' };
   if (!isConnected) return { label: 'Initializing', color: 'text-amber-400', dot: 'bg-amber-400' };
-  if (detectionHealth === 'Detection Running') {
+  if (meshStatus === 'Face Mesh Error' || detectionHealth === 'Detection Error') {
+    return { label: 'Error', color: 'text-red-400', dot: 'bg-red-400' };
+  }
+  if (detectionHealth === 'Detection Running' && meshStatus === 'Tracking Active') {
     return { label: 'Operational', color: 'text-emerald-400', dot: 'bg-emerald-400' };
   }
-  if (detectionHealth === 'Detection Error') {
-    return { label: 'Detection Error', color: 'text-red-400', dot: 'bg-red-400' };
+  if (detectionHealth === 'Detection Running' || meshStatus === 'Face Mesh Loaded') {
+    return { label: 'Operational', color: 'text-emerald-400', dot: 'bg-emerald-400' };
   }
   return { label: 'Standby', color: 'text-slate-400', dot: 'bg-slate-400' };
 }
 
 export default function Dashboard() {
+  const [landmarkGroups, setLandmarkGroups] = useState(DEFAULT_LANDMARK_GROUPS);
+
   const {
     webcamRef,
     isConnected,
@@ -43,7 +53,26 @@ export default function Dashboard() {
     isCameraConnected: isConnected,
   });
 
-  const systemStatus = getSystemStatus(isConnected, detectionHealth, error);
+  const {
+    landmarks,
+    landmarkCount,
+    meshStatus,
+    orientation,
+    faceVisibility,
+    faceDistance,
+    trackingQuality,
+    trackingFps,
+  } = useFaceMesh({
+    getVideoElement,
+    isCameraConnected: isConnected,
+  });
+
+  const systemStatus = getSystemStatus(
+    isConnected,
+    detectionHealth,
+    meshStatus,
+    error,
+  );
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -58,7 +87,7 @@ export default function Dashboard() {
                 Face Integrity Playground
               </h1>
               <p className="text-sm text-slate-400">
-                Phase 1 &amp; 2 — Camera &amp; Face Detection R&amp;D
+                Phase 1–3 — Camera, Detection &amp; Face Mesh R&amp;D
               </p>
             </div>
           </div>
@@ -75,8 +104,8 @@ export default function Dashboard() {
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-5">
-          <section className="lg:col-span-3">
-            <div className="mb-4">
+          <section className="space-y-4 lg:col-span-3">
+            <div>
               <h2 className="text-sm font-medium uppercase tracking-wider text-slate-500">
                 Webcam Feed
               </h2>
@@ -88,7 +117,13 @@ export default function Dashboard() {
               onLoadedMetadata={updateResolutionFromVideo}
               error={error}
               detections={detections}
+              landmarks={landmarks}
               resolution={resolution}
+              landmarkGroups={landmarkGroups}
+            />
+            <LandmarkGroupControls
+              groups={landmarkGroups}
+              onChange={setLandmarkGroups}
             />
           </section>
 
@@ -98,7 +133,8 @@ export default function Dashboard() {
                 browserName={browserName}
                 isConnected={isConnected}
                 permissionStatus={permissionStatus}
-                fps={detectionFps}
+                detectionFps={detectionFps}
+                trackingFps={trackingFps}
                 resolution={resolution}
               />
             </div>
@@ -110,6 +146,18 @@ export default function Dashboard() {
                 faceCount={faceCount}
                 facePresence={facePresence}
                 detectionHealth={detectionHealth}
+              />
+            </div>
+
+            <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-5">
+              <FaceMeshMetrics
+                meshStatus={meshStatus}
+                landmarkCount={landmarkCount}
+                trackingQuality={trackingQuality}
+                faceVisibility={faceVisibility}
+                faceDistance={faceDistance}
+                orientation={orientation}
+                trackingFps={trackingFps}
               />
             </div>
           </aside>
