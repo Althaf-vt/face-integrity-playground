@@ -5,6 +5,6 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
-    exclude: ['@mediapipe/face_detection'],
+    exclude: ['@mediapipe/face_detection', '@mediapipe/face_mesh'],
   },
 })

@@ -59,3 +59,30 @@ export function mapBoundingBoxToDisplay(box, videoWidth, videoHeight, containerW
     height: displayHeight,
   };
 }
+
+/**
+ * Maps a normalized MediaPipe landmark (0–1) to mirrored display coordinates
+ * under object-fit: cover.
+ */
+export function mapNormalizedPointToDisplay(
+  landmark,
+  videoWidth,
+  videoHeight,
+  containerWidth,
+  containerHeight,
+) {
+  const { scale, offsetX, offsetY } = getObjectCoverMetrics(
+    containerWidth,
+    containerHeight,
+    videoWidth,
+    videoHeight,
+  );
+
+  const nativeX = landmark.x * videoWidth;
+  const nativeY = landmark.y * videoHeight;
+  const displayX = nativeX * scale + offsetX;
+  const displayY = nativeY * scale + offsetY;
+  const mirroredX = containerWidth - displayX;
+
+  return { x: mirroredX, y: displayY };
+}
